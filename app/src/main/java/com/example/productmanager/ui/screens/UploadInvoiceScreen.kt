@@ -8,7 +8,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.navigation.Controller
+import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.example.productmanager.network.ApiService
 import kotlinx.coroutines.CoroutineScope

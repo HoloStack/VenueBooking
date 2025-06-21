@@ -10,7 +10,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
-import com.yourcompany.productmanager.ui.SignInScreen
+import com.example.productmanager.ui.screens.LoginScreen
 
 class MainActivity : ComponentActivity() {
     private lateinit var googleSignInClient: GoogleSignInClient
@@ -44,17 +44,12 @@ class MainActivity : ComponentActivity() {
 
         googleSignInClient = GoogleSignIn.getClient(this, gso)
 
-        // If using Jetpack Compose:
         setContent {
             SignInScreen(
                 onSignInClicked = { launchSignIn() }
             )
         }
 
-        // If using XML layout instead:
-        // setContentView(R.layout.activity_main)
-        // findViewById<Button>(R.id.sign_in_button)
-        //     .setOnClickListener { launchSignIn() }
     }
 
     private fun launchSignIn() {

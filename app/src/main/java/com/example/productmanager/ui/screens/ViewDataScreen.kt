@@ -5,7 +5,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
+import androidx.navg.NavController
 import com.example.productmanager.network.ApiService
 import com.example.productmanager.network.ItemDetails
 import com.example.productmanager.network.PartInfo

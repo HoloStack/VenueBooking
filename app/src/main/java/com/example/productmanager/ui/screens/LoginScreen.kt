@@ -13,11 +13,11 @@ import com.example.productmanager.network.LoginRequest
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import com.google.firebase.auth.FirebaseAuth
+// import com.google.firebase.auth.FirebaseAuth
 
 @Composable
 fun LoginScreen(navController: NavController) {
-    val auth = FirebaseAuthgetInstance()
+//    val auth = FirebaseAuthgetInstance()
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var error by remember { mutableStateOf<String?>(null) }

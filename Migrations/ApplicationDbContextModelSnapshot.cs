@@ -73,6 +73,7 @@ namespace venueBooking.Migrations
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("EventId"));
 
                     b.Property<string>("Description")
+                        .IsRequired()
                         .HasColumnType("longtext");
 
                     b.Property<DateTime>("EventDate")
@@ -84,9 +85,6 @@ namespace venueBooking.Migrations
 
                     b.Property<int>("EventTypeId")
                         .HasColumnType("int");
-
-                    b.Property<string>("ImageUrl")
-                        .HasColumnType("longtext");
 
                     b.Property<int>("VenueId")
                         .HasColumnType("int");

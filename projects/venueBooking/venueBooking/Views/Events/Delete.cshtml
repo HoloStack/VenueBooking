@@ -1,0 +1,29 @@
+@model venueBooking.Models.Event
+
+@{
+    ViewData["Title"] = "Delete Event";
+}
+
+<h1>Delete Event</h1>
+<h3>Are you sure you want to delete this event?</h3>
+
+<div>
+    <h4>@Model.EventName</h4>
+    <dl class="row">
+        <dt class="col-sm-3">Date</dt>
+        <dd class="col-sm-9">@Model.EventDate.ToString("g")</dd>
+
+        <dt class="col-sm-3">Venue</dt>
+        <dd class="col-sm-9">@Model.Venue?.VenueName</dd>
+
+        <dt class="col-sm-3">Type</dt>
+        <dd class="col-sm-9">@Model.EventType?.Name</dd>
+    </dl>
+</div>
+
+<form asp-action="Delete" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="EventId" />
+    <button type="submit" class="btn btn-danger">Delete</button>
+    <a asp-action="Index" class="btn btn-secondary ms-2">Cancel</a>
+</form>

@@ -1,0 +1,40 @@
+# Build outputs
+**/bin/
+**/obj/
+
+# VS Code settings
+.vscode/
+
+# Rider settings
+.idea/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# DotNet user secrets (if you use them)
+secrets.json
+**/secrets.json
+
+# ASP.NET Core config
+appsettings.json
+appsettings.Development.json
+
+# Logs
+logs/
+*.log
+
+# Resharper
+_ReSharper*/
+*.DotSettings.user
+
+# NPM / Yarn
+node_modules/
+
+# Temporary files
+*.tmp
+*.swp
+*~.nib
+.DS_Store

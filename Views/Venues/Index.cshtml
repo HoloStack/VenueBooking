@@ -1,0 +1,63 @@
+@model IEnumerable<venueBooking.Models.Venue>
+@using Microsoft.AspNetCore.Mvc.Rendering
+
+@{
+    ViewData["Title"] = "Venues";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary mb-3">New Venue</a>
+</p>
+
+<form method="get" class="row g-3 mb-4">
+    <div class="col-md-4">
+        <label class="form-label">Event Type</label>
+        <select name="eventTypeId" class="form-select" asp-items="ViewBag.EventTypesFilter">
+            <option value="">All Types</option>
+        </select>
+    </div>
+    <div class="col-md-4">
+        <label class="form-label">Available On</label>
+        <input type="date" name="date" class="form-control" value="@ViewBag.Date" />
+    </div>
+    <div class="col-md-4 align-self-end">
+        <button type="submit" class="btn btn-primary">Filter</button>
+    </div>
+</form>
+
+<table class="table table-hover">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Location</th>
+            <th>Capacity</th>
+            <th>Supported Types</th>
+            <th>Image</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var venue in Model)
+    {
+        <tr>
+            <td>@venue.VenueName</td>
+            <td>@venue.Location</td>
+            <td>@venue.Capacity</td>
+            <td>@(venue.SupportedEventTypes != null ? string.Join(", ", venue.SupportedEventTypes.Select(et => et.Name)) : "")</td>
+            <td>
+                @if (!string.IsNullOrWhiteSpace(venue.ImageUrl))
+                {
+                    <img src="@venue.ImageUrl" width="100" alt="@venue.VenueName" />
+                }
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@venue.VenueId" class="btn btn-sm btn-secondary">Edit</a>
+                <a asp-action="Details" asp-route-id="@venue.VenueId" class="btn btn-sm btn-info ms-1">Details</a>
+                <a asp-action="Delete" asp-route-id="@venue.VenueId" class="btn btn-sm btn-danger ms-1">Delete</a>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>

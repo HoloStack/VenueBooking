@@ -1,0 +1,68 @@
+@model venueBooking.Models.Venue
+
+@{
+    ViewData["Title"] = "Edit Venue";
+}
+
+<h1>Edit Venue</h1>
+
+<form asp-action="Edit" method="post" enctype="multipart/form-data">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="VenueId" />
+    <div asp-validation-summary="All" class="text-danger"></div>
+
+    <div class="mb-3">
+        <label asp-for="VenueName" class="form-label">Name</label>
+        <input asp-for="VenueName" class="form-control" />
+        <span asp-validation-for="VenueName" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Location" class="form-label">Location</label>
+        <input asp-for="Location" class="form-control" />
+        <span asp-validation-for="Location" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Capacity" class="form-label">Capacity</label>
+        <input asp-for="Capacity" type="number" class="form-control" />
+        <span asp-validation-for="Capacity" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Supported Event Types</label>
+        <select name="EventTypeIds" multiple class="form-select">
+            @foreach (var et in (MultiSelectList)ViewBag.EventTypes)
+            {
+                if (((MultiSelectList)ViewBag.EventTypes).SelectedValues?.Cast<string>().Contains(et.Value) == true)
+                {
+                    @:<option value="@et.Value" selected>@et.Text</option>
+                }
+                else
+                {
+                    @:<option value="@et.Value">@et.Text</option>
+                }
+            }
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Current Image</label><br />
+        @if (!string.IsNullOrEmpty(Model.ImageUrl))
+        {
+            <img src="@Model.ImageUrl" width="150" alt="@Model.VenueName" />
+        }
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Change Image</label>
+        <input type="file" name="image" class="form-control" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Save</button>
+    <a asp-action="Index" class="btn btn-secondary ms-2">Cancel</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

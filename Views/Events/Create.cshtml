@@ -1,0 +1,75 @@
+@* Views/Events/Index.cshtml *@
+@model IEnumerable<venueBooking.Models.Event>
+@using Microsoft.AspNetCore.Mvc.Rendering
+
+@{
+    ViewData["Title"] = "Events";
+}
+
+<h1>Events</h1>
+
+<form method="get" class="row g-3 mb-4">
+    <div class="col-md-3">
+        <label class="form-label">Event Type</label>
+        <select name="eventTypeId" class="form-select">
+            <option value="">All Types</option>
+            @foreach (var et in (SelectList)ViewBag.EventTypes)
+            {
+                if (et.Selected)
+                {
+                    @:<option value="@et.Value" selected>@et.Text</option>
+                }
+                else
+                {
+                    @:<option value="@et.Value">@et.Text</option>
+                }
+            }
+        </select>
+    </div>
+    <div class="col-md-3">
+        <label class="form-label">From Date</label>
+        <input type="date" name="fromDate" value="@ViewBag.FromDate" class="form-control" />
+    </div>
+    <div class="col-md-3">
+        <label class="form-label">To Date</label>
+        <input type="date" name="toDate" value="@ViewBag.ToDate" class="form-control" />
+    </div>
+    <div class="col-md-3 align-self-end">
+        <button type="submit" class="btn btn-primary">Filter</button>
+    </div>
+</form>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Date</th>
+            <th>Venue</th>
+            <th>Type</th>
+            <th>Venue Image</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var e in Model)
+    {
+        <tr>
+            <td>@e.EventName</td>
+            <td>@e.EventDate.ToString("g")</td>
+            <td>@e.Venue.VenueName</td>
+            <td>@e.EventType.Name</td>
+            <td>
+                @if (!string.IsNullOrEmpty(e.Venue.ImageUrl))
+                {
+                    <img src="@e.Venue.ImageUrl" width="100" alt="@e.Venue.VenueName" />
+                }
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@e.EventId">Edit</a> |
+                <a asp-action="Details" asp-route-id="@e.EventId">Details</a> |
+                <a asp-action="Delete" asp-route-id="@e.EventId">Delete</a>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>}]}

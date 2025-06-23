@@ -1,0 +1,12 @@
+@model Booking
+@{
+    ViewData["Title"] = "Delete Booking";
+}
+<h1>Delete Booking</h1>
+<h3>Are you sure?</h3>
+<div><h4>Booking on @Model.BookingDate.ToString("yyyy-MM-dd")</h4></div>
+<form asp-action="Delete">
+    <input type="hidden" asp-for="BookingId" />
+    <button type="submit" class="btn btn-danger">Delete</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+</form>

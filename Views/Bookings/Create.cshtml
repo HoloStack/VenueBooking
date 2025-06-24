@@ -2,21 +2,197 @@
 @{
     ViewData["Title"] = "Create Booking";
 }
+
 <h1>Create Booking</h1>
-<form asp-action="Create">
-    <div class="form-group">
-        <label asp-for="BookingDate"></label>
-        <input asp-for="BookingDate" type="date" class="form-control" />
+
+<!-- Event Date Display -->
+<div id="eventDateDisplay" class="alert alert-info" style="display: none;">
+    <strong>Event Date:</strong> <span id="eventDateText"></span>
+</div>
+
+<form asp-action="Create" method="post">
+    @Html.AntiForgeryToken()
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="mb-3">
+        <label asp-for="VenueId" class="form-label">Venue</label>
+        <select asp-for="VenueId" class="form-select" asp-items="ViewBag.Venues">
+            <option value="">-- Select Venue --</option>
+        </select>
+        <span asp-validation-for="VenueId" class="text-danger"></span>
     </div>
-    <div class="form-group">
-        <label asp-for="EventId"></label>
-        <select asp-for="EventId" asp-items="ViewBag.Events" class="form-control"></select>
+
+    <div class="mb-3">
+        <label asp-for="EventId" class="form-label">Event</label>
+        <div class="mb-2">
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="eventSelectionMode" id="venueFiltered" value="venue" checked>
+                <label class="form-check-label" for="venueFiltered">
+                    Show events for selected venue
+                </label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="eventSelectionMode" id="allEvents" value="all">
+                <label class="form-check-label" for="allEvents">
+                    Show all events
+                </label>
+            </div>
+        </div>
+        
+        <!-- Venue-filtered events dropdown -->
+        <select id="venueFilteredEvents" name="EventIdFiltered" class="form-select" disabled>
+            <option value="">-- Select Event --</option>
+        </select>
+        
+        <!-- All events dropdown -->
+        <select id="allEventsDropdown" name="EventIdTemp" class="form-select" asp-items="ViewBag.AllEvents" style="display: none;">
+            <option value="">-- Select Event --</option>
+        </select>
+        
+        <!-- Hidden field to store the actual EventId -->
+        <input type="hidden" asp-for="EventId" id="hiddenEventId" />
+        
+        <span asp-validation-for="EventId" class="text-danger"></span>
+        <small id="venueFilteredHelp" class="form-text text-muted">Select a venue first to see available events</small>
+        <small id="allEventsHelp" class="form-text text-muted" style="display: none;">Choose any event - venue will be auto-selected</small>
     </div>
-    <div class="form-group">
-        <label asp-for="VenueId"></label>
-        <select asp-for="VenueId" asp-items="ViewBag.Venues" class="form-control"></select>
+
+    <div class="mb-3">
+        <label asp-for="BookingDate" class="form-label">Booking Date</label>
+        <input asp-for="BookingDate" type="date" class="form-control" readonly />
+        <span asp-validation-for="BookingDate" class="text-danger"></span>
+        <small class="form-text text-muted">Date will be set automatically based on selected event</small>
     </div>
-    <button type="submit" class="btn btn-primary">Save</button>
-    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+
+    <button type="submit" class="btn btn-primary">Create Booking</button>
+    <a asp-action="Index" class="btn btn-secondary ms-2">Cancel</a>
 </form>
-@section Scripts { <partial name="_ValidationScriptsPartial" /> }
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script type="text/javascript">
+        $(document).ready(function() {
+            var venueSelect = $('#VenueId');
+            var venueFilteredEvents = $('#venueFilteredEvents');
+            var allEventsDropdown = $('#allEventsDropdown');
+            var bookingDateInput = $('#BookingDate');
+            var eventDateDisplay = $('#eventDateDisplay');
+            var eventDateText = $('#eventDateText');
+            var venueFilteredHelp = $('#venueFilteredHelp');
+            var allEventsHelp = $('#allEventsHelp');
+            
+            var currentEventSelect = venueFilteredEvents; // Track which dropdown is active
+            
+            // Toggle between event selection modes
+            $('input[name="eventSelectionMode"]').on('change', function() {
+                if ($(this).val() === 'venue') {
+                    // Show venue-filtered mode
+                    venueFilteredEvents.show();
+                    allEventsDropdown.hide();
+                    venueFilteredHelp.show();
+                    allEventsHelp.hide();
+                    currentEventSelect = venueFilteredEvents;
+                    
+                    // Clear all events selection
+                    allEventsDropdown.val('');
+                } else {
+                    // Show all events mode
+                    venueFilteredEvents.hide();
+                    allEventsDropdown.show();
+                    venueFilteredHelp.hide();
+                    allEventsHelp.show();
+                    currentEventSelect = allEventsDropdown;
+                    
+                    // Clear venue-filtered selection
+                    venueFilteredEvents.val('');
+                }
+                
+                // Clear date display
+                bookingDateInput.val('');
+                eventDateDisplay.hide();
+            });
+            
+            // When venue is selected, load events for that venue (only in venue-filtered mode)
+            venueSelect.on('change', function() {
+                var venueId = $(this).val();
+                
+                // Only update if in venue-filtered mode
+                if ($('#venueFiltered').is(':checked')) {
+                    // Clear event selection and hide date display
+                    venueFilteredEvents.empty();
+                    venueFilteredEvents.append('<option value="">-- Select Event --</option>');
+                    bookingDateInput.val('');
+                    eventDateDisplay.hide();
+                    
+                    if (venueId) {
+                        // Enable event dropdown and load events
+                        venueFilteredEvents.prop('disabled', false);
+                        
+                        $.get('/Bookings/GetEventsForVenue', { venueId: venueId })
+                            .done(function(data) {
+                                if (data && data.length > 0) {
+                                    $.each(data, function(i, event) {
+                                        venueFilteredEvents.append('<option value="' + event.value + '">' + event.text + ' (' + event.date + ')</option>');
+                                    });
+                                } else {
+                                    venueFilteredEvents.append('<option value="">No events available for this venue</option>');
+                                }
+                            })
+                            .fail(function() {
+                                venueFilteredEvents.append('<option value="">Error loading events</option>');
+                            });
+                    } else {
+                        // Disable event dropdown if no venue selected
+                        venueFilteredEvents.prop('disabled', true);
+                    }
+                }
+            });
+            
+            // Handle event selection from both dropdowns
+            function handleEventSelection(eventId) {
+                if (eventId) {
+                    // Get event details
+                    $.get('/Bookings/GetEventDetails', { eventId: eventId })
+                        .done(function(data) {
+                            if (data) {
+                                // Auto-select venue if not already selected
+                                if (venueSelect.val() != data.venueId) {
+                                    venueSelect.val(data.venueId);
+                                }
+                                
+                                // Set booking date to event date
+                                bookingDateInput.val(data.dateOnly);
+                                
+                                // Show event date display
+                                eventDateText.text(data.eventDate + ' at ' + data.venueName);
+                                eventDateDisplay.show();
+                            }
+                        })
+                        .fail(function() {
+                            console.error('Error loading event details');
+                        });
+                } else {
+                    // Clear date and hide display if no event selected
+                    bookingDateInput.val('');
+                    eventDateDisplay.hide();
+                }
+            }
+            
+            // Bind event selection handlers
+            venueFilteredEvents.on('change', function() {
+                var eventId = $(this).val();
+                $('#hiddenEventId').val(eventId);
+                handleEventSelection(eventId);
+            });
+            
+            allEventsDropdown.on('change', function() {
+                var eventId = $(this).val();
+                $('#hiddenEventId').val(eventId);
+                handleEventSelection(eventId);
+            });
+            
+            // Initially disable venue-filtered event dropdown
+            venueFilteredEvents.prop('disabled', true);
+        });
+    </script>
+}

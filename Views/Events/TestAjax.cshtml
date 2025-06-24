@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test AJAX</title>
+    <script src="/lib/jquery/dist/jquery.min.js"></script>
+</head>
+<body>
+    <h1>Test AJAX Functionality</h1>
+    
+    <select id="VenueId">
+        <option value="">-- Select Venue --</option>
+        <option value="1">huckleberry</option>
+        <option value="2">nettlesbry</option>
+    </select>
+    
+    <select id="EventTypeId">
+        <option value="">-- Select Type --</option>
+    </select>
+    
+    <div id="debug"></div>
+    
+    <script>
+        $(document).ready(function() {
+            $('#debug').append('<p>jQuery loaded successfully</p>');
+            
+            $('#VenueId').change(function() {
+                var venueId = $(this).val();
+                var eventTypeSelect = $('#EventTypeId');
+                
+                $('#debug').append('<p>Venue selected: ' + venueId + '</p>');
+                
+                // Clear the event types dropdown
+                eventTypeSelect.empty();
+                eventTypeSelect.append('<option value="">-- Select Type --</option>');
+                
+                if (venueId && venueId !== '') {
+                    $('#debug').append('<p>Making AJAX request...</p>');
+                    
+                    $.ajax({
+                        url: '/Events/GetEventTypesForVenue',
+                        type: 'GET',
+                        data: { venueId: venueId },
+                        dataType: 'json',
+                        success: function(data) {
+                            $('#debug').append('<p>AJAX Success! Data: ' + JSON.stringify(data) + '</p>');
+                            
+                            if (data && data.length > 0) {
+                                $.each(data, function(index, item) {
+                                    eventTypeSelect.append('<option value="' + item.value + '">' + item.text + '</option>');
+                                });
+                            } else {
+                                eventTypeSelect.append('<option value="">No event types available</option>');
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            $('#debug').append('<p>AJAX Error: ' + status + ' - ' + error + '</p>');
+                            $('#debug').append('<p>Response: ' + xhr.responseText + '</p>');
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

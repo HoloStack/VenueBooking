@@ -1,2 +1,9 @@
 runtime: aspnetcore
 env: flex
+runtime_config:
+  operating_system: ubuntu22
+  runtime_version: "8.0"
+env_variables:
+  ASPNETCORE_ENVIRONMENT: "Production"
+manual_scaling:
+  instances: 1

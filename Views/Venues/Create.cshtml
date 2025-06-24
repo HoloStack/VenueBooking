@@ -30,12 +30,20 @@
 
     <div class="mb-3">
         <label class="form-label">Supported Event Types</label>
-        <select name="EventTypeIds" multiple class="form-select">
-            @foreach (var et in (SelectList)ViewBag.EventTypes)
+        <small class="form-text text-muted">Select all event types this venue can support</small>
+        <div class="row">
+            @foreach (var et in (MultiSelectList)ViewBag.EventTypes)
             {
-                <option value="@et.Value">@et.Text</option>
+                <div class="col-md-6 col-lg-4">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="EventTypeIds" value="@et.Value" id="eventType_@et.Value" />
+                        <label class="form-check-label" for="eventType_@et.Value">
+                            @et.Text
+                        </label>
+                    </div>
+                </div>
             }
-        </select>
+        </div>
     </div>
 
     <div class="mb-3">

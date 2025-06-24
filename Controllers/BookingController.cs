@@ -3,6 +3,7 @@ using venueBooking.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
 namespace venueBooking.Controllers
 {
@@ -42,9 +43,57 @@ namespace venueBooking.Controllers
         // GET: Bookings/Create
         public async Task<IActionResult> Create()
         {
-            ViewBag.Events = new SelectList(await _db.Events.ToListAsync(), "EventId", "EventName");
+            // Load all events for initial dropdown
+            var allEvents = await _db.Events
+                .Include(e => e.Venue)
+                .OrderBy(e => e.EventDate)
+                .Select(e => new {
+                    EventId = e.EventId,
+                    DisplayText = e.EventName + " (" + e.EventDate.ToString("yyyy-MM-dd HH:mm") + " at " + e.Venue.VenueName + ")"
+                })
+                .ToListAsync();
+                
+            ViewBag.AllEvents = new SelectList(allEvents, "EventId", "DisplayText");
+            ViewBag.Events = new SelectList(Enumerable.Empty<Event>(), "EventId", "EventName");
             ViewBag.Venues = new SelectList(await _db.Venues.ToListAsync(), "VenueId", "VenueName");
             return View();
+        }
+
+        // API endpoint to get events for a specific venue
+        [HttpGet]
+        public async Task<IActionResult> GetEventsForVenue(int venueId)
+        {
+            var events = await _db.Events
+                .Where(e => e.VenueId == venueId)
+                .OrderBy(e => e.EventDate)
+                .Select(e => new { 
+                    Value = e.EventId, 
+                    Text = e.EventName,
+                    Date = e.EventDate.ToString("yyyy-MM-dd HH:mm"),
+                    VenueId = e.VenueId
+                })
+                .ToListAsync();
+            
+            return Json(events);
+        }
+
+        // API endpoint to get event details
+        [HttpGet]
+        public async Task<IActionResult> GetEventDetails(int eventId)
+        {
+            var eventDetails = await _db.Events
+                .Where(e => e.EventId == eventId)
+                .Select(e => new {
+                    EventId = e.EventId,
+                    EventName = e.EventName,
+                    VenueId = e.VenueId,
+                    VenueName = e.Venue.VenueName,
+                    EventDate = e.EventDate.ToString("yyyy-MM-dd HH:mm"),
+                    DateOnly = e.EventDate.ToString("yyyy-MM-dd")
+                })
+                .FirstOrDefaultAsync();
+            
+            return Json(eventDetails);
         }
 
         // POST: Bookings/Create

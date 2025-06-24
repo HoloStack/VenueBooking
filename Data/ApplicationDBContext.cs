@@ -12,7 +12,6 @@ namespace venueBooking.Data
         public DbSet<EventType> EventTypes { get; set; }
         public DbSet<Event> Events { get; set; }
         public DbSet<Booking> Bookings { get; set; }  // Added Bookings DbSet
-
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

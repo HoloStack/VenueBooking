@@ -69,7 +69,7 @@ namespace venueBooking.Controllers
         public async Task<IActionResult> Create()
         {
             var types = await _db.EventTypes.OrderBy(et => et.Name).ToListAsync();
-            ViewBag.EventTypes = new SelectList(types, "EventTypeId", "Name");
+            ViewBag.EventTypes = new MultiSelectList(types, "EventTypeId", "Name");
             return View();
         }
 
@@ -81,7 +81,7 @@ namespace venueBooking.Controllers
             if (!ModelState.IsValid)
             {
                 var types = await _db.EventTypes.OrderBy(et => et.Name).ToListAsync();
-                ViewBag.EventTypes = new SelectList(types, "EventTypeId", "Name", EventTypeIds.FirstOrDefault());
+                ViewBag.EventTypes = new MultiSelectList(types, "EventTypeId", "Name", EventTypeIds);
                 return View(venue);
             }
 

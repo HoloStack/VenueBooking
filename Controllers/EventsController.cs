@@ -19,62 +19,115 @@ namespace venueBooking.Controllers
         }
 
         // GET: Events
-        // filter by type, date range
+        // /Events?eventTypeId=2&fromDate=2025-06-20&toDate=2025-06-25
         public async Task<IActionResult> Index(int? eventTypeId, DateTime? fromDate, DateTime? toDate)
         {
-            var query = _db.Events
+            var q = _db.Events
                 .Include(e => e.Venue)
                 .Include(e => e.EventType)
                 .AsQueryable();
 
             if (eventTypeId.HasValue)
-                query = query.Where(e => e.EventTypeId == eventTypeId.Value);
+                q = q.Where(e => e.EventTypeId == eventTypeId.Value);
+
             if (fromDate.HasValue)
-                query = query.Where(e => e.EventDate.Date >= fromDate.Value.Date);
+                q = q.Where(e => e.EventDate.Date >= fromDate.Value.Date);
+
             if (toDate.HasValue)
-                query = query.Where(e => e.EventDate.Date <= toDate.Value.Date);
+                q = q.Where(e => e.EventDate.Date <= toDate.Value.Date);
 
-            ViewBag.EventTypes = new SelectList(await _db.EventTypes.ToListAsync(), "EventTypeId", "Name", eventTypeId);
+            ViewBag.EventTypesFilter = new SelectList(
+                await _db.EventTypes.ToListAsync(), 
+                "EventTypeId", 
+                "Name", 
+                eventTypeId);
+
             ViewBag.FromDate = fromDate?.ToString("yyyy-MM-dd");
-            ViewBag.ToDate = toDate?.ToString("yyyy-MM-dd");
+            ViewBag.ToDate   = toDate?.ToString("yyyy-MM-dd");
 
-            var events = await query.OrderBy(e => e.EventDate).ToListAsync();
-            return View(events);
+            var list = await q.OrderBy(e => e.EventDate).ToListAsync();
+            return View(list);
+        }
+
+        // GET: Events/Details/5
+        public async Task<IActionResult> Details(int? id)
+        {
+            if (id == null) return NotFound();
+
+            var evt = await _db.Events
+                .Include(e => e.Venue)
+                .Include(e => e.EventType)
+                .FirstOrDefaultAsync(e => e.EventId == id);
+
+            if (evt == null) return NotFound();
+            return View(evt);
         }
 
         // GET: Events/Create
         public IActionResult Create()
         {
-            ViewBag.Venues = new SelectList(_db.Venues, "VenueId", "VenueName");
-            ViewBag.EventTypes = new SelectList(_db.EventTypes, "EventTypeId", "Name");
+            ViewBag.Venues     = new SelectList(_db.Venues,     "VenueId",      "VenueName");
+            ViewBag.EventTypes = new SelectList(Enumerable.Empty<EventType>(), "EventTypeId", "Name");
+            return View();
+        }
+
+        // API endpoint to get event types for a specific venue
+        [HttpGet]
+        public IActionResult GetEventTypesForVenue(int venueId)
+        {
+            var venue = _db.Venues
+                .Include(v => v.SupportedEventTypes)
+                .FirstOrDefault(v => v.VenueId == venueId);
+            
+            var eventTypes = venue?.SupportedEventTypes ?? new List<EventType>();
+            
+            return Json(eventTypes.Select(et => new { 
+                Value = et.EventTypeId, 
+                Text = et.Name 
+            }));
+        }
+
+        // Test page for AJAX debugging
+        public IActionResult TestAjax()
+        {
             return View();
         }
 
         // POST: Events/Create
-        [HttpPost]
-        [ValidateAntiForgeryToken]
+        [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Event evt)
         {
-            // prevent past dates
-            if (evt.EventDate < DateTime.Now)
-                ModelState.AddModelError(nameof(evt.EventDate), "Event date cannot be in the past.");
+            // Past-date guard
+            if (evt.EventDate.Date < DateTime.Today)
+                ModelState.AddModelError(nameof(evt.EventDate), "You cannot book an event in the past.");
 
-            // one event per venue per day
+            // Double-booking guard
             bool conflict = await _db.Events
-                .AnyAsync(e => e.VenueId == evt.VenueId && e.EventDate.Date == evt.EventDate.Date);
+                .AnyAsync(e => e.VenueId == evt.VenueId
+                            && e.EventDate.Date == evt.EventDate.Date);
             if (conflict)
-                ModelState.AddModelError(string.Empty, "Only one event per venue per day is allowed.");
+                ModelState.AddModelError("", "That venue already has an event on this date.");
 
-            if (!ModelState.IsValid)
+            if (ModelState.IsValid)
             {
-                ViewBag.Venues = new SelectList(_db.Venues, "VenueId", "VenueName", evt.VenueId);
-                ViewBag.EventTypes = new SelectList(_db.EventTypes, "EventTypeId", "Name", evt.EventTypeId);
-                return View(evt);
+                _db.Add(evt);
+                await _db.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
             }
 
-            _db.Events.Add(evt);
-            await _db.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            // on failure: re-populate dropdowns
+            ViewBag.Venues = new SelectList(
+                _db.Venues, "VenueId", "VenueName", evt.VenueId);
+
+            // only the types supported by that venue
+            var venue = _db.Venues
+                .Include(v => v.SupportedEventTypes)
+                .FirstOrDefault(v => v.VenueId == evt.VenueId);
+            var supported = venue?.SupportedEventTypes ?? new List<EventType>();
+            ViewBag.EventTypes = new SelectList(
+                supported, "EventTypeId", "Name", evt.EventTypeId);
+
+            return View(evt);
         }
 
         // GET: Events/Edit/5
@@ -83,45 +136,62 @@ namespace venueBooking.Controllers
             if (id == null) return NotFound();
             var evt = await _db.Events.FindAsync(id);
             if (evt == null) return NotFound();
-            ViewBag.Venues = new SelectList(_db.Venues, "VenueId", "VenueName", evt.VenueId);
-            ViewBag.EventTypes = new SelectList(_db.EventTypes, "EventTypeId", "Name", evt.EventTypeId);
+
+            ViewBag.Venues = new SelectList(
+                _db.Venues, "VenueId", "VenueName", evt.VenueId);
+
+            var venue = _db.Venues
+                .Include(v => v.SupportedEventTypes)
+                .FirstOrDefault(v => v.VenueId == evt.VenueId);
+            var supported = venue?.SupportedEventTypes ?? new List<EventType>();
+            ViewBag.EventTypes = new SelectList(
+                supported, "EventTypeId", "Name", evt.EventTypeId);
+
             return View(evt);
         }
 
         // POST: Events/Edit/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
+        [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, Event evt)
         {
             if (id != evt.EventId) return NotFound();
-            if (evt.EventDate < DateTime.Now)
-                ModelState.AddModelError(nameof(evt.EventDate), "Event date cannot be in the past.");
+
+            if (evt.EventDate.Date < DateTime.Today)
+                ModelState.AddModelError(nameof(evt.EventDate), "You cannot book an event in the past.");
 
             bool conflict = await _db.Events
-                .Where(e => e.EventId != id)
-                .AnyAsync(e => e.VenueId == evt.VenueId && e.EventDate.Date == evt.EventDate.Date);
+                .AnyAsync(e => e.EventId != id
+                            && e.VenueId == evt.VenueId
+                            && e.EventDate.Date == evt.EventDate.Date);
             if (conflict)
-                ModelState.AddModelError(string.Empty, "Only one event per venue per day is allowed.");
+                ModelState.AddModelError("", "That venue already has an event on this date.");
 
-            if (!ModelState.IsValid)
+            if (ModelState.IsValid)
             {
-                ViewBag.Venues = new SelectList(_db.Venues, "VenueId", "VenueName", evt.VenueId);
-                ViewBag.EventTypes = new SelectList(_db.EventTypes, "EventTypeId", "Name", evt.EventTypeId);
-                return View(evt);
+                try
+                {
+                    _db.Update(evt);
+                    await _db.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!await _db.Events.AnyAsync(e => e.EventId == id))
+                        return NotFound();
+                    throw;
+                }
+                return RedirectToAction(nameof(Index));
             }
 
-            try
-            {
-                _db.Update(evt);
-                await _db.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!_db.Events.Any(e => e.EventId == id))
-                    return NotFound();
-                throw;
-            }
-            return RedirectToAction(nameof(Index));
+            ViewBag.Venues = new SelectList(
+                _db.Venues, "VenueId", "VenueName", evt.VenueId);
+            var venue = _db.Venues
+                .Include(v => v.SupportedEventTypes)
+                .FirstOrDefault(v => v.VenueId == evt.VenueId);
+            var supportedTypes = venue?.SupportedEventTypes ?? new List<EventType>();
+            ViewBag.EventTypes = new SelectList(
+                supportedTypes, "EventTypeId", "Name", evt.EventTypeId);
+
+            return View(evt);
         }
 
         // GET: Events/Delete/5
@@ -137,8 +207,7 @@ namespace venueBooking.Controllers
         }
 
         // POST: Events/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
+        [HttpPost, ActionName("Delete"), ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var evt = await _db.Events.FindAsync(id);

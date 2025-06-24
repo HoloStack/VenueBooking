@@ -6,33 +6,35 @@
 
 <h1>Edit Event</h1>
 
-<form asp-action="Edit" method="post">
-    @Html.AntiForgeryToken()
+<form asp-action="Edit" enctype="multipart/form-data">
     <input type="hidden" asp-for="EventId" />
+
     <div asp-validation-summary="All" class="text-danger"></div>
 
+    <!-- same fields as Create -->
     <div class="mb-3">
         <label asp-for="EventName" class="form-label"></label>
         <input asp-for="EventName" class="form-control" />
         <span asp-validation-for="EventName" class="text-danger"></span>
     </div>
-
     <div class="mb-3">
         <label asp-for="EventDate" class="form-label"></label>
-        <input asp-for="EventDate" type="datetime-local" step="60" class="form-control" />
+        <input asp-for="EventDate" type="datetime-local" class="form-control" />
         <span asp-validation-for="EventDate" class="text-danger"></span>
     </div>
-
     <div class="mb-3">
-        <label asp-for="VenueId" class="form-label">Venue</label>
+        <label class="form-label">Venue</label>
         <select asp-for="VenueId" class="form-select" asp-items="ViewBag.Venues"></select>
         <span asp-validation-for="VenueId" class="text-danger"></span>
     </div>
-
     <div class="mb-3">
-        <label asp-for="EventTypeId" class="form-label">Event Type</label>
+        <label class="form-label">Event Type</label>
         <select asp-for="EventTypeId" class="form-select" asp-items="ViewBag.EventTypes"></select>
         <span asp-validation-for="EventTypeId" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Image (optional)</label>
+        <input type="file" name="image" class="form-control" />
     </div>
 
     <button type="submit" class="btn btn-primary">Save</button>
@@ -41,4 +43,32 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        $(document).ready(function() {
+            $('#VenueId').change(function() {
+                var venueId = $(this).val();
+                var eventTypeSelect = $('#EventTypeId');
+                var currentEventTypeId = eventTypeSelect.val(); // Remember current selection
+                
+                // Clear the event types dropdown
+                eventTypeSelect.empty();
+                eventTypeSelect.append('<option value="">-- Select Type --</option>');
+                
+                if (venueId) {
+                    // Make AJAX call to get event types for the selected venue
+                    $.get('@Url.Action("GetEventTypesForVenue", "Events")', { venueId: venueId })
+                        .done(function(data) {
+                            // Populate the event types dropdown
+                            $.each(data, function(index, item) {
+                                var selected = (item.value == currentEventTypeId) ? ' selected' : '';
+                                eventTypeSelect.append('<option value="' + item.value + '"' + selected + '>' + item.text + '</option>');
+                            });
+                        })
+                        .fail(function() {
+                            console.error('Failed to load event types for venue');
+                        });
+                }
+            });
+        });
+    </script>
 }

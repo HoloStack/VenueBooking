@@ -1,75 +1,87 @@
-@* Views/Events/Index.cshtml *@
-@model IEnumerable<venueBooking.Models.Event>
-@using Microsoft.AspNetCore.Mvc.Rendering
-
+@model venueBooking.Models.Event
 @{
-    ViewData["Title"] = "Events";
+    ViewData["Title"] = "Create Event";
 }
 
-<h1>Events</h1>
+<h1>Create Event</h1>
 
-<form method="get" class="row g-3 mb-4">
-    <div class="col-md-3">
-        <label class="form-label">Event Type</label>
-        <select name="eventTypeId" class="form-select">
-            <option value="">All Types</option>
-            @foreach (var et in (SelectList)ViewBag.EventTypes)
-            {
-                if (et.Selected)
-                {
-                    @:<option value="@et.Value" selected>@et.Text</option>
-                }
-                else
-                {
-                    @:<option value="@et.Value">@et.Text</option>
-                }
-            }
+<form asp-action="Create" method="post" enctype="multipart/form-data">
+    @Html.AntiForgeryToken()
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="mb-3">
+        <label asp-for="EventName" class="form-label"></label>
+        <input asp-for="EventName" class="form-control" />
+        <span asp-validation-for="EventName" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Description" class="form-label"></label>
+        <textarea asp-for="Description" class="form-control"></textarea>
+        <span asp-validation-for="Description" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="EventDate" class="form-label"></label>
+        <input asp-for="EventDate" type="datetime-local" step="60" class="form-control" />
+        <span asp-validation-for="EventDate" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="VenueId" class="form-label">Venue</label>
+        <select asp-for="VenueId" class="form-select" asp-items="ViewBag.Venues">
+            <option value="">-- Select Venue --</option>
         </select>
+        <span asp-validation-for="VenueId" class="text-danger"></span>
     </div>
-    <div class="col-md-3">
-        <label class="form-label">From Date</label>
-        <input type="date" name="fromDate" value="@ViewBag.FromDate" class="form-control" />
+
+    <div class="mb-3">
+        <label asp-for="EventTypeId" class="form-label">Event Type</label>
+        <select asp-for="EventTypeId" class="form-select" asp-items="ViewBag.EventTypes">
+            <option value="">-- Select Type --</option>
+        </select>
+        <span asp-validation-for="EventTypeId" class="text-danger"></span>
     </div>
-    <div class="col-md-3">
-        <label class="form-label">To Date</label>
-        <input type="date" name="toDate" value="@ViewBag.ToDate" class="form-control" />
+
+    <div class="mb-3">
+        <label class="form-label">Image Upload</label>
+        <input type="file" name="image" class="form-control" />
     </div>
-    <div class="col-md-3 align-self-end">
-        <button type="submit" class="btn btn-primary">Filter</button>
-    </div>
+
+    <button type="submit" class="btn btn-primary">Save</button>
+    <a asp-action="Index" class="btn btn-secondary ms-2">Cancel</a>
 </form>
 
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Date</th>
-            <th>Venue</th>
-            <th>Type</th>
-            <th>Venue Image</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-    @foreach (var e in Model)
-    {
-        <tr>
-            <td>@e.EventName</td>
-            <td>@e.EventDate.ToString("g")</td>
-            <td>@e.Venue.VenueName</td>
-            <td>@e.EventType.Name</td>
-            <td>
-                @if (!string.IsNullOrEmpty(e.Venue.ImageUrl))
-                {
-                    <img src="@e.Venue.ImageUrl" width="100" alt="@e.Venue.VenueName" />
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script type="text/javascript">
+        $(document).ready(function() {
+            $('#EventTypeId').prop('disabled', true);
+            
+            $('#VenueId').on('change', function() {
+                var venueId = $(this).val();
+                var eventTypeSelect = $('#EventTypeId');
+                
+                eventTypeSelect.empty();
+                eventTypeSelect.append('<option value="">-- Select Type --</option>');
+                
+                if (venueId) {
+                    $.get('/Events/GetEventTypesForVenue', { venueId: venueId })
+                        .done(function(data) {
+                            eventTypeSelect.prop('disabled', false);
+                            if (data && data.length > 0) {
+                                $.each(data, function(i, item) {
+                                    eventTypeSelect.append('<option value="' + item.value + '">' + item.text + '</option>');
+                                });
+                            }
+                        })
+                        .fail(function() {
+                            eventTypeSelect.append('<option value="">Error loading types</option>');
+                        });
+                } else {
+                    eventTypeSelect.prop('disabled', true);
                 }
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@e.EventId">Edit</a> |
-                <a asp-action="Details" asp-route-id="@e.EventId">Details</a> |
-                <a asp-action="Delete" asp-route-id="@e.EventId">Delete</a>
-            </td>
-        </tr>
-    }
-    </tbody>
-</table>}]}
+            });
+        });
+    </script>
+}

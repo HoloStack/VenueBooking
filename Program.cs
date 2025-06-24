@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. Configure DbContext for MariaDB with EF Core logging
+// 1. Configure DbContext for MySQL with EF Core logging
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>

@@ -1,4 +1,4 @@
-# Build outputs
+# .NET Build outputs
 **/bin/
 **/obj/
 
@@ -38,3 +38,19 @@ node_modules/
 *.swp
 *~.nib
 .DS_Store
+
+# Android/Gradle specific
+*.iml
+.gradle
+/local.properties
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties

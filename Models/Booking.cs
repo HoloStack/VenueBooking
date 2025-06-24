@@ -9,6 +9,9 @@ namespace venueBooking.Models
 
         [Required]
         public DateTime BookingDate { get; set; }
+        
+        [Required]
+        public string CustomerName { get; set; }
 
         [Required]
         public int EventId { get; set; }

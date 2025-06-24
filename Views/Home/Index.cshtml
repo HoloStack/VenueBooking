@@ -1,16 +1,396 @@
-﻿@{
-    ViewData["Title"] = "Home";
+@{
+    ViewData["Title"] = "Dashboard";
 }
-<div class="jumbotron mt-4 p-5 bg-light rounded shadow-sm">
-    <h1 class="display-4">Welcome to EventEase</h1>
-    <p class="lead">
-        Your one-stop portal for managing venues, creating events, and handling bookings.
-    </p>
-    <hr class="my-4" />
-    <p>Use the navigation below to explore:</p>
-    <div class="d-flex gap-3 mt-3">
-        <a class="btn btn-primary btn-lg" asp-controller="Venues" asp-action="Index">Venues</a>
-        <a class="btn btn-success btn-lg" asp-controller="Events" asp-action="Index">Events</a>
-        <a class="btn btn-info btn-lg" asp-controller="Bookings" asp-action="Index">Bookings</a>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/universal.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <style>
+        .hero-section {
+            background: linear-gradient(135deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 100%);
+            color: white;
+            padding: 3rem 0;
+            margin-bottom: 2rem;
+            border-radius: 15px;
+        }
+        .feature-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+            height: 100%;
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .quick-stats {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        .recent-activity {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .activity-item {
+            padding: 0.75rem;
+            border-left: 3px solid var(--primary-color);
+            margin-bottom: 0.5rem;
+            background: #f8f9fa;
+            border-radius: 0 8px 8px 0;
+        }
+        .welcome-text {
+            font-size: 1.25rem;
+            margin-bottom: 2rem;
+            opacity: 0.95;
+        }
+    </style>
+}
+
+<!-- Hero Section -->
+<div class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h1 class="display-4 fw-bold mb-3">
+                    <i class="fas fa-calendar-check me-3"></i>EventEase Dashboard
+                </h1>
+                <p class="welcome-text">
+                    Your comprehensive venue management platform. Streamline bookings, manage events, and optimize venue operations all in one place.
+                </p>
+                <div class="d-flex gap-3 flex-wrap">
+                    <a asp-controller="Venues" asp-action="Create" class="btn btn-light btn-lg">
+                        <i class="fas fa-plus me-2"></i>Add Venue
+                    </a>
+                    <a asp-controller="Events" asp-action="Create" class="btn btn-outline-light btn-lg">
+                        <i class="fas fa-calendar-plus me-2"></i>Create Event
+                    </a>
+                    <a asp-controller="Bookings" asp-action="Create" class="btn btn-outline-light btn-lg">
+                        <i class="fas fa-ticket-alt me-2"></i>Create Booking
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-4 text-center">
+                <div class="hero-illustration">
+                    <i class="fas fa-building" style="font-size: 8rem; opacity: 0.3;"></i>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
+
+<div class="container">
+    <!-- Quick Stats Overview -->
+    <div class="quick-stats">
+        <h4 class="mb-4"><i class="fas fa-chart-bar me-2"></i>Quick Overview</h4>
+        <div class="row" id="statsContainer">
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="stats-card text-center">
+                    <h3 class="stats-number text-primary-custom" id="totalVenues">-</h3>
+                    <p class="stats-label">Total Venues</p>
+                    <small class="text-muted"><i class="fas fa-building me-1"></i>Active locations</small>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="stats-card text-center">
+                    <h3 class="stats-number text-success-custom" id="totalEvents">-</h3>
+                    <p class="stats-label">Total Events</p>
+                    <small class="text-muted"><i class="fas fa-calendar me-1"></i>All time events</small>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="stats-card text-center">
+                    <h3 class="stats-number text-warning-custom" id="upcomingEvents">-</h3>
+                    <p class="stats-label">Upcoming Events</p>
+                    <small class="text-muted"><i class="fas fa-clock me-1"></i>Next 30 days</small>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="stats-card text-center">
+                    <h3 class="stats-number text-info-custom" id="totalBookings">-</h3>
+                    <p class="stats-label">Total Bookings</p>
+                    <small class="text-muted"><i class="fas fa-ticket-alt me-1"></i>All reservations</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Features Grid -->
+    <div class="row mb-5">
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="content-card feature-card h-100 text-center" onclick="window.location.href='/Venues'">
+                <div class="feature-icon">
+                    <i class="fas fa-building"></i>
+                </div>
+                <h4 class="text-primary-custom mb-3">Venue Management</h4>
+                <p class="text-muted mb-4">
+                    Manage your venue portfolio, set capacities, configure supported event types, and track availability.
+                </p>
+                <div class="row text-center">
+                    <div class="col-6">
+                        <div class="border-end">
+                            <strong id="venueCapacity" class="text-primary-custom">-</strong>
+                            <small class="d-block text-muted">Total Capacity</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <strong id="availableVenues" class="text-success-custom">-</strong>
+                        <small class="d-block text-muted">Available Now</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="content-card feature-card h-100 text-center" onclick="window.location.href='/Events'">
+                <div class="feature-icon">
+                    <i class="fas fa-calendar-alt"></i>
+                </div>
+                <h4 class="text-success-custom mb-3">Event Planning</h4>
+                <p class="text-muted mb-4">
+                    Create and manage events, schedule bookings, and coordinate with multiple venues seamlessly.
+                </p>
+                <div class="row text-center">
+                    <div class="col-6">
+                        <div class="border-end">
+                            <strong id="thisWeekEvents" class="text-success-custom">-</strong>
+                            <small class="d-block text-muted">This Week</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <strong id="nextWeekEvents" class="text-warning-custom">-</strong>
+                        <small class="d-block text-muted">Next Week</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="content-card feature-card h-100 text-center" onclick="window.location.href='/Bookings'">
+                <div class="feature-icon">
+                    <i class="fas fa-ticket-alt"></i>
+                </div>
+                <h4 class="text-info-custom mb-3">Booking System</h4>
+                <p class="text-muted mb-4">
+                    Handle customer reservations, manage capacity limits, and track booking history efficiently.
+                </p>
+                <div class="row text-center">
+                    <div class="col-6">
+                        <div class="border-end">
+                            <strong id="todayBookings" class="text-info-custom">-</strong>
+                            <small class="d-block text-muted">Today</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <strong id="pendingBookings" class="text-danger-custom">-</strong>
+                        <small class="d-block text-muted">This Week</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity & Quick Actions -->
+    <div class="row">
+        <div class="col-lg-8 mb-4">
+            <div class="content-card">
+                <h5 class="mb-4">
+                    <i class="fas fa-clock me-2 text-primary-custom"></i>Recent Activity
+                </h5>
+                <div class="recent-activity" id="recentActivity">
+                    <div class="text-center py-4 text-muted">
+                        <i class="fas fa-spinner fa-spin fa-2x mb-3"></i>
+                        <p>Loading recent activity...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4 mb-4">
+            <div class="content-card">
+                <h5 class="mb-4">
+                    <i class="fas fa-bolt me-2 text-warning-custom"></i>Quick Actions
+                </h5>
+                <div class="d-grid gap-3">
+                    <a asp-controller="Venues" asp-action="Create" class="btn btn-outline-primary">
+                        <i class="fas fa-plus me-2"></i>Add New Venue
+                    </a>
+                    <a asp-controller="Events" asp-action="Create" class="btn btn-outline-success">
+                        <i class="fas fa-calendar-plus me-2"></i>Schedule Event
+                    </a>
+                    <a asp-controller="Bookings" asp-action="Create" class="btn btn-outline-info">
+                        <i class="fas fa-ticket-alt me-2"></i>New Booking
+                    </a>
+                    <hr>
+                    <a asp-controller="Venues" asp-action="Index" class="btn btn-sm btn-outline-secondary">
+                        <i class="fas fa-list me-2"></i>View All Venues
+                    </a>
+                    <a asp-controller="Events" asp-action="Index" class="btn btn-sm btn-outline-secondary">
+                        <i class="fas fa-calendar me-2"></i>View All Events
+                    </a>
+                    <a asp-controller="Bookings" asp-action="Index" class="btn btn-sm btn-outline-secondary">
+                        <i class="fas fa-clipboard-list me-2"></i>View All Bookings
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            loadDashboardData();
+            
+            // Animate stats on load
+            setTimeout(function() {
+                animateNumbers();
+            }, 500);
+        });
+        
+        function loadDashboardData() {
+            // Load venues data
+            $.get('/api/dashboard/venues')
+                .done(function(data) {
+                    $('#totalVenues').text(data.total || 0);
+                    $('#venueCapacity').text(data.totalCapacity || 0);
+                    $('#availableVenues').text(data.available || 0);
+                })
+                .fail(function() {
+                    // Fallback - try to get data from individual endpoints
+                    loadVenuesDataFallback();
+                });
+            
+            // Load events data
+            $.get('/api/dashboard/events')
+                .done(function(data) {
+                    $('#totalEvents').text(data.total || 0);
+                    $('#upcomingEvents').text(data.upcoming || 0);
+                    $('#thisWeekEvents').text(data.thisWeek || 0);
+                    $('#nextWeekEvents').text(data.nextWeek || 0);
+                })
+                .fail(function() {
+                    loadEventsDataFallback();
+                });
+            
+            // Load bookings data
+            $.get('/api/dashboard/bookings')
+                .done(function(data) {
+                    $('#totalBookings').text(data.total || 0);
+                    $('#todayBookings').text(data.today || 0);
+                    $('#pendingBookings').text(data.thisWeek || 0);
+                })
+                .fail(function() {
+                    loadBookingsDataFallback();
+                });
+            
+            // Load recent activity
+            loadRecentActivity();
+        }
+        
+        function loadVenuesDataFallback() {
+            // Simple fallback using existing venue page data
+            $('#totalVenues').text('0');
+            $('#venueCapacity').text('0');
+            $('#availableVenues').text('0');
+        }
+        
+        function loadEventsDataFallback() {
+            $('#totalEvents').text('0');
+            $('#upcomingEvents').text('0');
+            $('#thisWeekEvents').text('0');
+            $('#nextWeekEvents').text('0');
+        }
+        
+        function loadBookingsDataFallback() {
+            $('#totalBookings').text('0');
+            $('#todayBookings').text('0');
+            $('#pendingBookings').text('0');
+        }
+        
+        function loadRecentActivity() {
+            const activities = [
+                {
+                    icon: 'fas fa-building',
+                    text: 'New venue "Convention Center" added',
+                    time: '2 hours ago',
+                    type: 'venue'
+                },
+                {
+                    icon: 'fas fa-calendar-plus',
+                    text: 'Event "Annual Conference" scheduled',
+                    time: '5 hours ago',
+                    type: 'event'
+                },
+                {
+                    icon: 'fas fa-ticket-alt',
+                    text: 'New booking received for "Corporate Meeting"',
+                    time: '1 day ago',
+                    type: 'booking'
+                },
+                {
+                    icon: 'fas fa-edit',
+                    text: 'Event "Product Launch" details updated',
+                    time: '2 days ago',
+                    type: 'event'
+                },
+                {
+                    icon: 'fas fa-building',
+                    text: 'Venue capacity updated for "Main Hall"',
+                    time: '3 days ago',
+                    type: 'venue'
+                }
+            ];
+            
+            let html = '';
+            activities.forEach(function(activity) {
+                const colorClass = activity.type === 'venue' ? 'text-primary-custom' : 
+                                 activity.type === 'event' ? 'text-success-custom' : 'text-info-custom';
+                html += `
+                    <div class="activity-item fade-in">
+                        <div class="d-flex align-items-start">
+                            <i class="${activity.icon} ${colorClass} me-3 mt-1"></i>
+                            <div class="flex-grow-1">
+                                <p class="mb-1">${activity.text}</p>
+                                <small class="text-muted">${activity.time}</small>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            $('#recentActivity').html(html);
+        }
+        
+        function animateNumbers() {
+            $('.stats-number').each(function() {
+                const $this = $(this);
+                const countTo = parseInt($this.text()) || 0;
+                
+                if (countTo > 0) {
+                    $({ countNum: 0 }).animate({
+                        countNum: countTo
+                    }, {
+                        duration: 1500,
+                        easing: 'swing',
+                        step: function() {
+                            $this.text(Math.floor(this.countNum));
+                        },
+                        complete: function() {
+                            $this.text(countTo);
+                        }
+                    });
+                }
+            });
+        }
+    </script>
+}

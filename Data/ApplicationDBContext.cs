@@ -31,10 +31,16 @@ namespace venueBooking.Data
                     }
                 );
 
-            // Booking: ensure one booking per Event per day
+            // Booking relationships (removed unique constraint to allow multiple bookings per event)
             modelBuilder.Entity<Booking>()
-                .HasIndex(b => new { b.VenueId, b.BookingDate })
-                .IsUnique();
+                .HasOne(b => b.Event)
+                .WithMany()
+                .HasForeignKey(b => b.EventId);
+                
+            modelBuilder.Entity<Booking>()
+                .HasOne(b => b.Venue)
+                .WithMany()
+                .HasForeignKey(b => b.VenueId);
         }
     }
 }

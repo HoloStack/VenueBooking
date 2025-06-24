@@ -1,60 +1,129 @@
 @model venueBooking.Models.Venue
-
 @{
     ViewData["Title"] = "Create Venue";
 }
 
-<h1>Create Venue</h1>
+@section Styles {
+    <link rel="stylesheet" href="~/css/universal.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+}
 
-<form asp-action="Create" method="post" enctype="multipart/form-data">
-    @Html.AntiForgeryToken()
-    <div asp-validation-summary="All" class="text-danger"></div>
+<div class="container">
+    <div class="form-container">
+        <div class="form-header">
+            <h1><i class="fas fa-building me-3"></i>Create New Venue</h1>
+            <p>Add a new venue to your management system with all the essential details</p>
+        </div>
+        
+        <div class="form-body">
+            <form asp-action="Create" method="post" enctype="multipart/form-data">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="All" class="alert alert-danger"></div>
 
-    <div class="mb-3">
-        <label asp-for="VenueName" class="form-label">Name</label>
-        <input asp-for="VenueName" class="form-control" />
-        <span asp-validation-for="VenueName" class="text-danger"></span>
-    </div>
-
-    <div class="mb-3">
-        <label asp-for="Location" class="form-label">Location</label>
-        <input asp-for="Location" class="form-control" />
-        <span asp-validation-for="Location" class="text-danger"></span>
-    </div>
-
-    <div class="mb-3">
-        <label asp-for="Capacity" class="form-label">Capacity</label>
-        <input asp-for="Capacity" type="number" class="form-control" />
-        <span asp-validation-for="Capacity" class="text-danger"></span>
-    </div>
-
-    <div class="mb-3">
-        <label class="form-label">Supported Event Types</label>
-        <small class="form-text text-muted">Select all event types this venue can support</small>
-        <div class="row">
-            @foreach (var et in (MultiSelectList)ViewBag.EventTypes)
-            {
-                <div class="col-md-6 col-lg-4">
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" name="EventTypeIds" value="@et.Value" id="eventType_@et.Value" />
-                        <label class="form-check-label" for="eventType_@et.Value">
-                            @et.Text
+                <div class="form-section">
+                    <h5 class="section-title"><i class="fas fa-info-circle me-2"></i>Basic Information</h5>
+                    
+                    <div class="row">
+                        <div class="col-md-8 mb-3">
+                            <label asp-for="VenueName" class="form-label">
+                                <i class="fas fa-building"></i>
+                                Venue Name
+                            </label>
+                            <input asp-for="VenueName" class="form-control" placeholder="Enter venue name" />
+                            <span asp-validation-for="VenueName" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="Capacity" class="form-label">
+                                <i class="fas fa-users"></i>
+                                Capacity
+                            </label>
+                            <input asp-for="Capacity" class="form-control" placeholder="Max attendees" type="number" min="1" />
+                            <span asp-validation-for="Capacity" class="text-danger"></span>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label asp-for="Location" class="form-label">
+                            <i class="fas fa-map-marker-alt"></i>
+                            Location Address
                         </label>
+                        <input asp-for="Location" class="form-control" placeholder="Enter full address" />
+                        <span asp-validation-for="Location" class="text-danger"></span>
                     </div>
                 </div>
-            }
+
+                <div class="form-section">
+                    <h5 class="section-title"><i class="fas fa-star me-2"></i>Event Type Configuration</h5>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="fas fa-calendar-check"></i>
+                            Supported Event Types
+                        </label>
+                        <small class="form-text text-muted mb-3 d-block">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Select all event types this venue can support
+                        </small>
+                        <div class="row">
+                            @foreach (var et in (MultiSelectList)ViewBag.EventTypes)
+                            {
+                                <div class="col-md-6 col-lg-4 mb-2">
+                                    <div class="form-check p-3 border rounded hover-highlight">
+                                        <input class="form-check-input" type="checkbox" name="EventTypeIds" value="@et.Value" id="eventType_@et.Value" />
+                                        <label class="form-check-label fw-semibold" for="eventType_@et.Value">
+                                            <i class="fas fa-star me-2 text-warning"></i>
+                                            @et.Text
+                                        </label>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h5 class="section-title"><i class="fas fa-image me-2"></i>Venue Media</h5>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="fas fa-camera"></i>
+                            Venue Image
+                        </label>
+                        <input type="file" name="image" class="form-control" accept="image/*" />
+                        <div class="form-text">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Upload a high-quality image of your venue (JPG, PNG, GIF supported)
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" class="btn-form-primary">
+                        <i class="fas fa-save me-2"></i>Create Venue
+                    </button>
+                    <a asp-action="Index" class="btn-form-secondary">
+                        <i class="fas fa-times me-2"></i>Cancel
+                    </a>
+                </div>
+            </form>
         </div>
     </div>
-
-    <div class="mb-3">
-        <label class="form-label">Image Upload</label>
-        <input type="file" name="image" class="form-control" />
-    </div>
-
-    <button type="submit" class="btn btn-primary">Save</button>
-    <a asp-action="Index" class="btn btn-secondary ms-2">Cancel</a>
-</form>
+</div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <style>
+        .hover-highlight {
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+        .hover-highlight:hover {
+            background: #e9ecef;
+            border-color: var(--primary-color) !important;
+        }
+        .form-check-input:checked + .form-check-label {
+            color: var(--primary-color);
+        }
+    </style>
 }

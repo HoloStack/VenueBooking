@@ -1,63 +1,245 @@
 @model IEnumerable<venueBooking.Models.Venue>
-@using Microsoft.AspNetCore.Mvc.Rendering
-
 @{
-    ViewData["Title"] = "Venues";
+    ViewData["Title"] = "Venues Management";
 }
 
-<h1>@ViewData["Title"]</h1>
+@section Styles {
+    <link rel="stylesheet" href="~/css/universal.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+}
 
-<p>
-    <a asp-action="Create" class="btn btn-primary mb-3">New Venue</a>
-</p>
+<!-- Header Section -->
+<div class="page-header">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1><i class="fas fa-building me-3"></i>Venues Management</h1>
+                <p class="mb-0">Manage event venues and their capabilities</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <a asp-action="Create" class="btn-create">
+                    <i class="fas fa-plus me-2"></i>New Venue
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
 
-<form method="get" class="row g-3 mb-4">
-    <div class="col-md-4">
-        <label class="form-label">Event Type</label>
-        <select name="eventTypeId" class="form-select" asp-items="ViewBag.EventTypesFilter">
-            <option value="">All Types</option>
-        </select>
+<div class="container">
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="stats-card text-center">
+                <h3 class="stats-number">@Model.Count()</h3>
+                <p class="stats-label">Total Venues</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card text-center">
+                <h3 class="stats-number">@Model.Where(v => v.SupportedEventTypes?.Any() == true).Count()</h3>
+                <p class="stats-label">Configured Venues</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card text-center">
+                <h3 class="stats-number">@Model.Sum(v => v.Capacity)</h3>
+                <p class="stats-label">Total Capacity</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card text-center">
+                <h3 class="stats-number">@(Model.Any() ? (int)Model.Average(v => v.Capacity) : 0)</h3>
+                <p class="stats-label">Avg Capacity</p>
+            </div>
+        </div>
     </div>
-    <div class="col-md-4">
-        <label class="form-label">Available On</label>
-        <input type="date" name="date" class="form-control" value="@ViewBag.Date" />
-    </div>
-    <div class="col-md-4 align-self-end">
-        <button type="submit" class="btn btn-primary">Filter</button>
-    </div>
-</form>
 
-<table class="table table-hover">
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Location</th>
-            <th>Capacity</th>
-            <th>Supported Types</th>
-            <th>Image</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-    @foreach (var venue in Model)
+    <!-- Filter Panel -->
+    <div class="filter-panel">
+        <h5><i class="fas fa-filter me-2"></i>Filter Venues</h5>
+        <form method="get" asp-action="Index" class="filter-form">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label for="eventTypeId" class="form-label">Event Type Support</label>
+                    <select name="eventTypeId" id="eventTypeId" class="form-select" asp-items="ViewBag.EventTypesFilter">
+                        <option value="">All Event Types</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="fromDate" class="form-label">From Date</label>
+                    <input type="date" name="fromDate" id="fromDate" class="form-control" value="@ViewBag.FromDate" />
+                </div>
+                <div class="col-md-2">
+                    <label for="toDate" class="form-label">To Date</label>
+                    <input type="date" name="toDate" id="toDate" class="form-control" value="@ViewBag.ToDate" />
+                </div>
+                <div class="col-md-3">
+                    <label for="availableOnly" class="form-label">Availability</label>
+                    <select name="availableOnly" id="availableOnly" class="form-select">
+                        <option value="">All Venues</option>
+                        @if (ViewBag.AvailableOnly == true)
+                        {
+                            <option value="true" selected>Available Only</option>
+                        }
+                        else
+                        {
+                            <option value="true">Available Only</option>
+                        }
+                        @if (ViewBag.AvailableOnly == false)
+                        {
+                            <option value="false" selected>With Events</option>
+                        }
+                        else
+                        {
+                            <option value="false">With Events</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end gap-2">
+                    <button type="submit" class="btn btn-filter">
+                        <i class="fas fa-search me-2"></i>Filter
+                    </button>
+                    <a href="@Url.Action("Index")" class="btn btn-clear">
+                        <i class="fas fa-times me-2"></i>Clear
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Venues Grid -->
+    @if (Model.Any())
     {
-        <tr>
-            <td>@venue.VenueName</td>
-            <td>@venue.Location</td>
-            <td>@venue.Capacity</td>
-            <td>@(venue.SupportedEventTypes != null ? string.Join(", ", venue.SupportedEventTypes.Select(et => et.Name)) : "")</td>
-            <td>
-                @if (!string.IsNullOrWhiteSpace(venue.ImageUrl))
-                {
-                    <img src="@venue.ImageUrl" width="100" alt="@venue.VenueName" />
-                }
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@venue.VenueId" class="btn btn-sm btn-secondary">Edit</a>
-                <a asp-action="Details" asp-route-id="@venue.VenueId" class="btn btn-sm btn-info ms-1">Details</a>
-                <a asp-action="Delete" asp-route-id="@venue.VenueId" class="btn btn-sm btn-danger ms-1">Delete</a>
-            </td>
-        </tr>
+        <div class="card-grid">
+            @foreach (var venue in Model)
+            {
+                <div class="content-card fade-in venue-card" data-venue-id="@venue.VenueId" data-venue-name="@venue.VenueName" style="cursor: pointer;">
+                    @if (!string.IsNullOrEmpty(venue.ImageUrl))
+                    {
+                        <div class="venue-image mb-3">
+                            <img src="@venue.ImageUrl" class="img-fluid rounded" alt="@venue.VenueName" style="height: 200px; width: 100%; object-fit: cover;" />
+                        </div>
+                    }
+                    <div class="venue-info">
+                        <h5 class="text-primary-custom mb-3">
+                            <i class="fas fa-building me-2"></i>@venue.VenueName
+                        </h5>
+                        
+                        <div class="venue-details mb-3">
+                            <p class="mb-2">
+                                <i class="fas fa-map-marker-alt text-danger-custom me-2"></i>
+                                <strong>Location:</strong> @venue.Location
+                            </p>
+                            <p class="mb-2">
+                                <i class="fas fa-users text-info-custom me-2"></i>
+                                <strong>Capacity:</strong> @venue.Capacity people
+                            </p>
+                            <p class="mb-3">
+                                <i class="fas fa-calendar-alt text-warning-custom me-2"></i>
+                                <strong>Upcoming Events:</strong> @(venue.Events?.Count(e => e.EventDate > DateTime.Now) ?? 0)
+                            </p>
+                        </div>
+                        
+                        <div class="event-types mb-3">
+                            <label class="form-label fw-bold">Supported Event Types:</label><br/>
+                            @if (venue.SupportedEventTypes?.Any() == true)
+                            {
+                                @foreach (var eventType in venue.SupportedEventTypes)
+                                {
+                                    <span class="badge bg-primary-custom me-1 mb-1">
+                                        <i class="fas fa-star me-1"></i>@eventType.Name
+                                    </span>
+                                }
+                            }
+                            else
+                            {
+                                <span class="text-muted">
+                                    <i class="fas fa-exclamation-triangle me-1"></i>No event types configured
+                                </span>
+                            }
+                        </div>
+                        
+                        <div class="action-buttons d-flex justify-content-between">
+                            <a asp-action="Details" asp-route-id="@venue.VenueId" class="btn btn-info btn-sm" title="View Details">
+                                <i class="fas fa-eye me-1"></i>Details
+                            </a>
+                            <a asp-action="Edit" asp-route-id="@venue.VenueId" class="btn btn-warning btn-sm" title="Edit Venue">
+                                <i class="fas fa-edit me-1"></i>Edit
+                            </a>
+                            <a asp-action="Delete" asp-route-id="@venue.VenueId" class="btn btn-danger btn-sm" title="Delete Venue">
+                                <i class="fas fa-trash me-1"></i>Delete
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
     }
-    </tbody>
-</table>
+    else
+    {
+        <div class="content-card">
+            <div class="empty-state">
+                <i class="fas fa-building"></i>
+                <h4>No Venues Found</h4>
+                <p>No venues match your current filter criteria.</p>
+                <a asp-action="Create" class="btn-create">
+                    <i class="fas fa-plus me-2"></i>Create First Venue
+                </a>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Auto-submit form when filters change
+            $('#eventTypeId, #availableOnly').on('change', function() {
+                if ($(this).val() !== '') {
+                    $('.filter-form').submit();
+                }
+            });
+            
+            // Add loading animation to filter button
+            $('.filter-form').on('submit', function() {
+                var submitBtn = $('.btn-filter');
+                submitBtn.html('<i class="fas fa-spinner fa-spin me-2"></i>Filtering...');
+                submitBtn.prop('disabled', true);
+            });
+            
+            // Animate stats cards on page load
+            $('.stats-number').each(function() {
+                var $this = $(this);
+                var countTo = parseInt($this.text());
+                
+                if (!isNaN(countTo)) {
+                    $({ countNum: 0 }).animate({
+                        countNum: countTo
+                    }, {
+                        duration: 1000,
+                        easing: 'swing',
+                        step: function() {
+                            $this.text(Math.floor(this.countNum));
+                        },
+                        complete: function() {
+                            $this.text(countTo);
+                        }
+                    });
+                }
+            });
+            
+            // Enhanced tooltips
+            $('[title]').tooltip({
+                placement: 'top',
+                trigger: 'hover'
+            });
+            // Double-click on venue card to navigate to create event page
+            $('.venue-card').on('dblclick', function() {
+                const venueId = $(this).data('venue-id');
+                const venueName = $(this).data('venue-name');
+                const createEventUrl = '/Events/Create?venueId=' + venueId + '&venueName=' + encodeURIComponent(venueName);
+                window.location.href = createEventUrl;
+            });
+        });
+    </script>
+}

@@ -3,70 +3,146 @@
     ViewData["Title"] = "Create Booking";
 }
 
-<h1>Create Booking</h1>
+@section Styles {
+    <link rel="stylesheet" href="~/css/universal.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+}
 
-<!-- Event Date Display -->
-<div id="eventDateDisplay" class="alert alert-info" style="display: none;">
-    <strong>Event Date:</strong> <span id="eventDateText"></span>
-</div>
-
-<form asp-action="Create" method="post">
-    @Html.AntiForgeryToken()
-    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-
-    <div class="mb-3">
-        <label asp-for="VenueId" class="form-label">Venue</label>
-        <select asp-for="VenueId" class="form-select" asp-items="ViewBag.Venues">
-            <option value="">-- Select Venue --</option>
-        </select>
-        <span asp-validation-for="VenueId" class="text-danger"></span>
-    </div>
-
-    <div class="mb-3">
-        <label asp-for="EventId" class="form-label">Event</label>
-        <div class="mb-2">
-            <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" name="eventSelectionMode" id="venueFiltered" value="venue" checked>
-                <label class="form-check-label" for="venueFiltered">
-                    Show events for selected venue
-                </label>
-            </div>
-            <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" name="eventSelectionMode" id="allEvents" value="all">
-                <label class="form-check-label" for="allEvents">
-                    Show all events
-                </label>
-            </div>
+<div class="container">
+    <div class="form-container">
+        <div class="form-header">
+            <h1><i class="fas fa-ticket-alt me-3"></i>Create New Booking</h1>
+            <p>Reserve a spot for your customer at an upcoming event</p>
         </div>
         
-        <!-- Venue-filtered events dropdown -->
-        <select id="venueFilteredEvents" name="EventIdFiltered" class="form-select" disabled>
-            <option value="">-- Select Event --</option>
-        </select>
-        
-        <!-- All events dropdown -->
-        <select id="allEventsDropdown" name="EventIdTemp" class="form-select" asp-items="ViewBag.AllEvents" style="display: none;">
-            <option value="">-- Select Event --</option>
-        </select>
-        
-        <!-- Hidden field to store the actual EventId -->
-        <input type="hidden" asp-for="EventId" id="hiddenEventId" />
-        
-        <span asp-validation-for="EventId" class="text-danger"></span>
-        <small id="venueFilteredHelp" class="form-text text-muted">Select a venue first to see available events</small>
-        <small id="allEventsHelp" class="form-text text-muted" style="display: none;">Choose any event - venue will be auto-selected</small>
-    </div>
+        <div class="form-body">
+            @if (!string.IsNullOrEmpty(ViewBag.PreSelectedEvent))
+            {
+                <div class="alert alert-info mb-4">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Event Pre-selected:</strong> @ViewBag.PreSelectedEvent 
+                    @if (!string.IsNullOrEmpty(ViewBag.PreSelectedEventDate))
+                    {
+                        <span>on @ViewBag.PreSelectedEventDate at @ViewBag.PreSelectedVenue</span>
+                    }
+                </div>
+            }
 
-    <div class="mb-3">
-        <label asp-for="BookingDate" class="form-label">Booking Date</label>
-        <input asp-for="BookingDate" type="date" class="form-control" readonly />
-        <span asp-validation-for="BookingDate" class="text-danger"></span>
-        <small class="form-text text-muted">Date will be set automatically based on selected event</small>
-    </div>
+            <!-- Event Date Display -->
+            <div id="eventDateDisplay" class="alert alert-success" style="display: none;">
+                <i class="fas fa-calendar-check me-2"></i>
+                <strong>Event Date:</strong> <span id="eventDateText"></span>
+            </div>
+            
+            <form asp-action="Create" method="post">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
-    <button type="submit" class="btn btn-primary">Create Booking</button>
-    <a asp-action="Index" class="btn btn-secondary ms-2">Cancel</a>
-</form>
+                <div class="form-section">
+                    <h5 class="section-title"><i class="fas fa-map-marker-alt me-2"></i>Event Selection</h5>
+                    
+                    <div class="mb-3">
+                        <label asp-for="VenueId" class="form-label">
+                            <i class="fas fa-building"></i>
+                            Venue Location
+                        </label>
+                        <select asp-for="VenueId" class="form-select" asp-items="ViewBag.Venues">
+                            <option value="">-- Select Venue --</option>
+                        </select>
+                        <span asp-validation-for="VenueId" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="EventId" class="form-label">
+                            <i class="fas fa-calendar-alt"></i>
+                            Event Selection
+                        </label>
+                        <div class="mb-3">
+                            <div class="form-check form-check-inline p-2 border rounded me-3">
+                                <input class="form-check-input" type="radio" name="eventSelectionMode" id="venueFiltered" value="venue" checked>
+                                <label class="form-check-label fw-semibold" for="venueFiltered">
+                                    <i class="fas fa-filter me-1"></i>
+                                    Show events for selected venue
+                                </label>
+                            </div>
+                            <div class="form-check form-check-inline p-2 border rounded">
+                                <input class="form-check-input" type="radio" name="eventSelectionMode" id="allEvents" value="all">
+                                <label class="form-check-label fw-semibold" for="allEvents">
+                                    <i class="fas fa-list me-1"></i>
+                                    Show all events
+                                </label>
+                            </div>
+                        </div>
+        
+                        <!-- Venue-filtered events dropdown -->
+                        <select id="venueFilteredEvents" name="EventIdFiltered" class="form-select" disabled>
+                            <option value="">-- Select Event --</option>
+                        </select>
+                        
+                        <!-- All events dropdown -->
+                        <select id="allEventsDropdown" name="EventIdTemp" class="form-select" asp-items="ViewBag.AllEvents" style="display: none;">
+                            <option value="">-- Select Event --</option>
+                        </select>
+                        
+                        <!-- Hidden field to store the actual EventId -->
+                        <input type="hidden" asp-for="EventId" id="hiddenEventId" />
+                        
+                        <span asp-validation-for="EventId" class="text-danger"></span>
+                        <div class="form-text">
+                            <small id="venueFilteredHelp">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Select a venue first to see available events
+                            </small>
+                            <small id="allEventsHelp" style="display: none;">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Choose any event - venue will be auto-selected
+                            </small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h5 class="section-title"><i class="fas fa-user me-2"></i>Customer Information</h5>
+                    
+                    <div class="mb-3">
+                        <label asp-for="CustomerName" class="form-label">
+                            <i class="fas fa-user"></i>
+                            Customer Name
+                        </label>
+                        <input asp-for="CustomerName" class="form-control" placeholder="Enter full customer name" />
+                        <span asp-validation-for="CustomerName" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h5 class="section-title"><i class="fas fa-calendar-day me-2"></i>Booking Details</h5>
+                    
+                    <div class="mb-3">
+                        <label asp-for="BookingDate" class="form-label">
+                            <i class="fas fa-calendar-day"></i>
+                            Booking Date
+                        </label>
+                        <input asp-for="BookingDate" type="date" class="form-control" readonly style="background-color: #f8f9fa;" />
+                        <span asp-validation-for="BookingDate" class="text-danger"></span>
+                        <div class="form-text">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Date will be set automatically based on selected event
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-form-primary">
+                        <i class="fas fa-check me-2"></i>Create Booking
+                    </button>
+                    <a asp-action="Index" class="btn-form-secondary">
+                        <i class="fas fa-times me-2"></i>Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />

@@ -17,12 +17,41 @@ namespace venueBooking.Controllers
         }
 
         // GET: Bookings
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int? venueId, int? eventId, DateTime? fromDate, DateTime? toDate)
         {
-            var bookings = await _db.Bookings
+            var query = _db.Bookings
                 .Include(b => b.Event)
                 .Include(b => b.Venue)
+                .AsQueryable();
+
+            // Apply filters
+            if (venueId.HasValue)
+                query = query.Where(b => b.VenueId == venueId.Value);
+                
+            if (eventId.HasValue)
+                query = query.Where(b => b.EventId == eventId.Value);
+                
+            if (fromDate.HasValue)
+                query = query.Where(b => b.BookingDate >= fromDate.Value.Date);
+                
+            if (toDate.HasValue)
+                query = query.Where(b => b.BookingDate <= toDate.Value.Date);
+
+            var bookings = await query
+                .OrderByDescending(b => b.BookingDate)
+                .ThenBy(b => b.CustomerName)
                 .ToListAsync();
+
+            // Populate filter dropdowns
+            ViewBag.Venues = new SelectList(await _db.Venues.OrderBy(v => v.VenueName).ToListAsync(), "VenueId", "VenueName", venueId);
+            ViewBag.Events = new SelectList(await _db.Events.OrderBy(e => e.EventName).ToListAsync(), "EventId", "EventName", eventId);
+            
+            // Set filter values for form
+            ViewBag.VenueId = venueId;
+            ViewBag.EventId = eventId;
+            ViewBag.FromDate = fromDate?.ToString("yyyy-MM-dd");
+            ViewBag.ToDate = toDate?.ToString("yyyy-MM-dd");
+
             return View(bookings);
         }
 
@@ -41,8 +70,11 @@ namespace venueBooking.Controllers
         }
 
         // GET: Bookings/Create
-        public async Task<IActionResult> Create()
+        public async Task<IActionResult> Create(int? eventId)
         {
+            // Create a new booking model
+            var booking = new Booking();
+            
             // Load all events for initial dropdown
             var allEvents = await _db.Events
                 .Include(e => e.Venue)
@@ -52,11 +84,30 @@ namespace venueBooking.Controllers
                     DisplayText = e.EventName + " (" + e.EventDate.ToString("yyyy-MM-dd HH:mm") + " at " + e.Venue.VenueName + ")"
                 })
                 .ToListAsync();
+            
+            // If eventId is provided, pre-select it and populate related fields
+            if (eventId.HasValue)
+            {
+                var selectedEvent = await _db.Events
+                    .Include(e => e.Venue)
+                    .FirstOrDefaultAsync(e => e.EventId == eventId.Value);
+                    
+                if (selectedEvent != null)
+                {
+                    booking.EventId = eventId.Value;
+                    booking.VenueId = selectedEvent.VenueId;
+                    booking.BookingDate = selectedEvent.EventDate.Date;
+                    
+                    ViewBag.PreSelectedEvent = selectedEvent.EventName;
+                    ViewBag.PreSelectedVenue = selectedEvent.Venue?.VenueName;
+                    ViewBag.PreSelectedEventDate = selectedEvent.EventDate.ToString("yyyy-MM-dd HH:mm");
+                }
+            }
                 
-            ViewBag.AllEvents = new SelectList(allEvents, "EventId", "DisplayText");
+            ViewBag.AllEvents = new SelectList(allEvents, "EventId", "DisplayText", eventId);
             ViewBag.Events = new SelectList(Enumerable.Empty<Event>(), "EventId", "EventName");
-            ViewBag.Venues = new SelectList(await _db.Venues.ToListAsync(), "VenueId", "VenueName");
-            return View();
+            ViewBag.Venues = new SelectList(await _db.Venues.ToListAsync(), "VenueId", "VenueName", booking.VenueId);
+            return View(booking);
         }
 
         // API endpoint to get events for a specific venue
@@ -101,13 +152,47 @@ namespace venueBooking.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Booking booking)
         {
+            // Check venue capacity before allowing booking
             if (ModelState.IsValid)
             {
-                _db.Add(booking);
-                await _db.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                var eventDetails = await _db.Events
+                    .Include(e => e.Venue)
+                    .FirstOrDefaultAsync(e => e.EventId == booking.EventId);
+                
+                if (eventDetails != null)
+                {
+                    var currentBookingCount = await _db.Bookings
+                        .CountAsync(b => b.EventId == booking.EventId);
+                    
+                    if (currentBookingCount >= eventDetails.Venue.Capacity)
+                    {
+                        ModelState.AddModelError("", $"Sorry, this event is fully booked. The venue capacity is {eventDetails.Venue.Capacity} and there are already {currentBookingCount} bookings.");
+                    }
+                    else
+                    {
+                        _db.Add(booking);
+                        await _db.SaveChangesAsync();
+                        return RedirectToAction(nameof(Index));
+                    }
+                }
+                else
+                {
+                    ModelState.AddModelError("", "Selected event not found.");
+                }
             }
-            ViewBag.Events = new SelectList(await _db.Events.ToListAsync(), "EventId", "EventName", booking.EventId);
+            
+            // Re-populate dropdowns on error
+            var allEvents = await _db.Events
+                .Include(e => e.Venue)
+                .OrderBy(e => e.EventDate)
+                .Select(e => new {
+                    EventId = e.EventId,
+                    DisplayText = e.EventName + " (" + e.EventDate.ToString("yyyy-MM-dd HH:mm") + " at " + e.Venue.VenueName + ")"
+                })
+                .ToListAsync();
+                
+            ViewBag.AllEvents = new SelectList(allEvents, "EventId", "DisplayText", booking.EventId);
+            ViewBag.Events = new SelectList(Enumerable.Empty<Event>(), "EventId", "EventName", booking.EventId);
             ViewBag.Venues = new SelectList(await _db.Venues.ToListAsync(), "VenueId", "VenueName", booking.VenueId);
             return View(booking);
         }

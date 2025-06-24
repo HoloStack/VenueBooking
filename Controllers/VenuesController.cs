@@ -22,32 +22,53 @@ namespace venueBooking.Controllers
         }
 
         // GET: Venues
-        // Optional filters: eventTypeId, date (single)
-        public async Task<IActionResult> Index(int? eventTypeId, DateTime? date)
+        // Optional filters: eventTypeId, date range, availability
+        public async Task<IActionResult> Index(int? eventTypeId, DateTime? fromDate, DateTime? toDate, bool? availableOnly)
         {
             var query = _db.Venues
                 .Include(v => v.SupportedEventTypes)
                 .Include(v => v.Events)
                 .AsQueryable();
 
+            // Filter by event type support
             if (eventTypeId.HasValue)
             {
                 query = query.Where(v => v.SupportedEventTypes
                     .Any(et => et.EventTypeId == eventTypeId.Value));
             }
 
-            if (date.HasValue)
+            // Filter by date range - show venues available (no events) in the date range
+            if (fromDate.HasValue || toDate.HasValue)
             {
-                var d = date.Value.Date;
-                query = query.Where(v => !v.Events
-                    .Any(e => e.EventDate.Date == d));
+                var startDate = fromDate?.Date ?? DateTime.MinValue;
+                var endDate = toDate?.Date ?? DateTime.MaxValue;
+                
+                if (availableOnly == true)
+                {
+                    // Show only venues with NO events in the date range
+                    query = query.Where(v => !v.Events
+                        .Any(e => e.EventDate.Date >= startDate && e.EventDate.Date <= endDate));
+                }
+                else
+                {
+                    // Show venues that have events in the date range
+                    query = query.Where(v => v.Events
+                        .Any(e => e.EventDate.Date >= startDate && e.EventDate.Date <= endDate));
+                }
             }
 
+            var venues = await query.ToListAsync();
+            
+            // Populate filter dropdowns
             var types = await _db.EventTypes.OrderBy(et => et.Name).ToListAsync();
             ViewBag.EventTypesFilter = new SelectList(types, "EventTypeId", "Name", eventTypeId);
-            ViewBag.Date = date?.ToString("yyyy-MM-dd");
+            
+            // Set filter values for form
+            ViewBag.EventTypeId = eventTypeId;
+            ViewBag.FromDate = fromDate?.ToString("yyyy-MM-dd");
+            ViewBag.ToDate = toDate?.ToString("yyyy-MM-dd");
+            ViewBag.AvailableOnly = availableOnly;
 
-            var venues = await query.ToListAsync();
             return View(venues);
         }
 

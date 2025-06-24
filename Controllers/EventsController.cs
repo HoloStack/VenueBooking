@@ -64,11 +64,32 @@ namespace venueBooking.Controllers
         }
 
         // GET: Events/Create
-        public IActionResult Create()
+        public IActionResult Create(int? venueId, string venueName)
         {
-            ViewBag.Venues     = new SelectList(_db.Venues,     "VenueId",      "VenueName");
-            ViewBag.EventTypes = new SelectList(Enumerable.Empty<EventType>(), "EventTypeId", "Name");
-            return View();
+            // Create a new event model
+            var evt = new Event();
+            
+            // If venueId is provided, pre-select it
+            if (venueId.HasValue)
+            {
+                evt.VenueId = venueId.Value;
+                
+                // Load event types for the selected venue
+                var venue = _db.Venues
+                    .Include(v => v.SupportedEventTypes)
+                    .FirstOrDefault(v => v.VenueId == venueId.Value);
+                var supported = venue?.SupportedEventTypes ?? new List<EventType>();
+                
+                ViewBag.EventTypes = new SelectList(supported, "EventTypeId", "Name");
+                ViewBag.PreSelectedVenue = venueName;
+            }
+            else
+            {
+                ViewBag.EventTypes = new SelectList(Enumerable.Empty<EventType>(), "EventTypeId", "Name");
+            }
+            
+            ViewBag.Venues = new SelectList(_db.Venues, "VenueId", "VenueName", venueId);
+            return View(evt);
         }
 
         // API endpoint to get event types for a specific venue

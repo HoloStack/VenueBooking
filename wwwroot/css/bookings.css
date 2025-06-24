@@ -1,0 +1,239 @@
+/* Bookings Page Custom Styles */
+
+.bookings-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem 0;
+    margin-bottom: 2rem;
+    border-radius: 0 0 15px 15px;
+}
+
+.bookings-header h1 {
+    margin: 0;
+    font-weight: 600;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.filter-panel {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.filter-panel h5 {
+    color: #495057;
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+.filter-form .form-control, .filter-form .form-select {
+    border-radius: 8px;
+    border: 1px solid #ced4da;
+    transition: all 0.3s ease;
+}
+
+.filter-form .form-control:focus, .filter-form .form-select:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+.btn-filter {
+    background: linear-gradient(45deg, #667eea, #764ba2);
+    border: none;
+    border-radius: 8px;
+    padding: 0.6rem 1.5rem;
+    color: white;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-filter:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    color: white;
+}
+
+.btn-clear {
+    background: #6c757d;
+    border: none;
+    border-radius: 8px;
+    padding: 0.6rem 1.5rem;
+    color: white;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-clear:hover {
+    background: #5a6268;
+    transform: translateY(-2px);
+    color: white;
+}
+
+.stats-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border-left: 4px solid #667eea;
+}
+
+.stats-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #667eea;
+    margin: 0;
+}
+
+.stats-label {
+    color: #6c757d;
+    font-weight: 500;
+    margin: 0;
+}
+
+.bookings-table {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.bookings-table .table {
+    margin: 0;
+}
+
+.bookings-table .table thead {
+    background: linear-gradient(45deg, #667eea, #764ba2);
+}
+
+.bookings-table .table thead th {
+    border: none;
+    color: white;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 1rem;
+}
+
+.bookings-table .table tbody tr {
+    transition: all 0.3s ease;
+}
+
+.bookings-table .table tbody tr:hover {
+    background-color: #f8f9fa;
+    transform: scale(1.01);
+}
+
+.bookings-table .table td {
+    padding: 1rem;
+    vertical-align: middle;
+    border-color: #e9ecef;
+}
+
+.customer-name {
+    font-weight: 600;
+    color: #495057;
+}
+
+.event-name {
+    color: #667eea;
+    font-weight: 500;
+}
+
+.venue-name {
+    color: #28a745;
+    font-weight: 500;
+}
+
+.booking-date {
+    background: #e9ecef;
+    padding: 0.5rem 0.8rem;
+    border-radius: 6px;
+    font-weight: 500;
+    color: #495057;
+    display: inline-block;
+}
+
+.action-buttons .btn {
+    margin-right: 0.3rem;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    padding: 0.4rem 0.8rem;
+    transition: all 0.3s ease;
+}
+
+.action-buttons .btn:hover {
+    transform: translateY(-1px);
+}
+
+.btn-info {
+    background: #17a2b8;
+    border-color: #17a2b8;
+}
+
+.btn-warning {
+    background: #ffc107;
+    border-color: #ffc107;
+    color: #212529;
+}
+
+.btn-danger {
+    background: #dc3545;
+    border-color: #dc3545;
+}
+
+.create-booking-btn {
+    background: linear-gradient(45deg, #28a745, #20c997);
+    border: none;
+    border-radius: 8px;
+    padding: 0.8rem 2rem;
+    color: white;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-block;
+    transition: all 0.3s ease;
+    margin-bottom: 1rem;
+}
+
+.create-booking-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+    color: white;
+    text-decoration: none;
+}
+
+.no-bookings {
+    text-align: center;
+    padding: 3rem;
+    color: #6c757d;
+}
+
+.no-bookings i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    color: #dee2e6;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .filter-panel {
+        padding: 1rem;
+    }
+    
+    .bookings-table {
+        font-size: 0.875rem;
+    }
+    
+    .action-buttons .btn {
+        margin-bottom: 0.3rem;
+        font-size: 0.75rem;
+        padding: 0.3rem 0.6rem;
+    }
+    
+    .stats-number {
+        font-size: 1.5rem;
+    }
+}
